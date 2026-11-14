@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Conway's Game of Life</title>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+        <link id="site-favicon" rel="shortcut icon" href="img/life of conway - favicon.ico" type="image/x-icon">
+        <link rel="stylesheet" href="styles/common.css">
+        <link rel="stylesheet" href="styles/conway.css">
+        <link rel="stylesheet" href="styles/space_invaders.css">
+    </head>
+
+    <body>
+
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="invaders-background" aria-hidden="true"></canvas>
+        <div class="scanlines"></div>
+
+        <div class="site">
+
+            <nav class="game-switch" aria-label="Seleccionar juego">
+                <button type="button" class="game-tab is-active" data-view="conway-view" aria-pressed="true">Vida de Conway</button>
+                <button type="button" class="game-tab" data-view="space-invaders-view" aria-pressed="false">Space Invaders</button>
+                <button type="button" id="soundtrack-toggle" class="soundtrack-toggle" aria-pressed="false" disabled>♫ Sin música</button>
+            </nav>
+            <audio id="game-soundtrack" preload="none" aria-hidden="true"></audio>
+
+            <div id="conway-view" class="game-view">
+            <!-- HERO -->
+            <header class="hero">
+                <div class="hero-tag">Autómata Celular · 1970</div>
+                <img class="conway-logo" src="img/life of conway - favicon.png" alt="" aria-hidden="true">
+                <p class="hero-sub">
+                    Una simulación de vida artificial que emerge de cuatro reglas simples.<br>
+                    Complejidad infinita a partir de la nada<span class="blink">_</span>
+                </p>
+                <div class="hero-divider"></div>
+            </header>
+
+            <!-- NAV -->
+            <nav class="section-nav" aria-label="Secciones de Vida de Conway">
+                <a href="#conway">Conway</a>
+                <a href="#reglas">Reglas</a>
+                <a href="#patrones">Patrones</a>
+                <a href="#historia">Historia</a>
+                <a href="#complejidad">Catálogo</a>
+                <a href="#impacto">Impacto</a>
+                <a href="#video">Vídeo</a>
+                <a href="#documentacion">Recursos</a>
+            </nav>
+
+            <!-- CONWAY BIO -->
+            <section id="conway" class="scroll-reveal">
+                <div class="sec-label">// Creador</div>
+                <h2>John Horton Conway</h2>
+                <div class="bio-grid">
+                    <div class="bio-card">
+                        <div class="bio-avatar">JC</div>
+                        <div class="bio-name">John H. Conway</div>
+                        <div class="bio-dates">26 dic 1937 — 11 abr 2020</div>
+                        <div style="margin-top:18px;" class="stat-row">
+                            <div class="stat"><span class="stat-key">Nació en</span><span class="stat-val">Liverpool, UK</span></div>
+                            <div class="stat"><span class="stat-key">Institución</span><span class="stat-val">Princeton</span></div>
+                            <div class="stat"><span class="stat-key">Campo</span><span class="stat-val">Matemáticas</span></div>
+                            <div class="stat"><span class="stat-key">Año GoL</span><span class="stat-val">1970</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p>John Horton Conway fue uno de los matemáticos más creativos y prolíficos del siglo XX. Estudió en Cambridge bajo la supervisión de Harold Davenport y desarrolló contribuciones fundamentales en <strong>teoría de grupos</strong>, <strong>teoría de nudos</strong>, <strong>teoría de números</strong> y <strong>geometría combinatoria</strong>.</p>
+                        <p>Su carácter era legendario: impartía clases con malabares, resolvía problemas en pizarras de pasillos y mantenía conversaciones matemáticas durante horas en los cafés de Princeton. Era conocido por hacer accesibles los conceptos más abstractos sin sacrificar rigor.</p>
+                        <p>Diseñó el <strong>Juego de la Vida</strong> en 1970 mientras buscaba un autómata celular que satisficiera ciertas condiciones teóricas propuestas por John von Neumann. El juego se publicó en la columna "Mathematical Games" de <strong>Martin Gardner</strong> en Scientific American (octubre 1970) y generó una respuesta sin precedentes.</p>
+                        <p>Conway falleció el 11 de abril de 2020 a causa del COVID-19, dejando un legado matemático extraordinario.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REGLAS -->
+            <section id="reglas" class="scroll-reveal">
+                <div class="sec-label">// Mecánica</div>
+                <h2>Las Cuatro Reglas</h2>
+                <p>El universo del Juego de la Vida es una cuadrícula ortogonal bidimensional, infinita en teoría, donde cada celda puede estar <strong>viva</strong> o <strong>muerta</strong>. En cada paso de tiempo, se aplican simultáneamente cuatro reglas a todas las celdas, usando como referencia los <strong>8 vecinos</strong> (Moore neighbourhood).</p>
+                <div class="rules-grid">
+                    <div class="rule-card">
+                        <div class="rule-num">1</div>
+                        <h3>Soledad</h3>
+                        <p>Una celda viva con <strong>menos de 2 vecinos vivos</strong> muere por subpoblación.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">2</div>
+                        <h3>Supervivencia</h3>
+                        <p>Una celda viva con <strong>2 o 3 vecinos vivos</strong> sobrevive a la siguiente generación.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">3</div>
+                        <h3>Superpoblación</h3>
+                        <p>Una celda viva con <strong>más de 3 vecinos vivos</strong> muere por sobrepoblación.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">4</div>
+                        <h3>Reproducción</h3>
+                        <p>Una celda muerta con <strong>exactamente 3 vecinos vivos</strong> se convierte en célula viva.</p>
+                    </div>
+                </div>
+                <p style="margin-top:20px;">Estas reglas se expresan en notación <strong>B3/S23</strong>: nacimiento con 3 vecinos, supervivencia con 2 o 3. Esta notación es parte del sistema Golly/rle estándar para definir autómatas celulares.</p>
+            </section>
+
+            <!-- PATRONES -->
+            <section id="patrones" class="scroll-reveal">
+                <div class="sec-label">// Formas conocidas</div>
+                <h2>Patrones Fundamentales</h2>
+                <p>A lo largo de décadas de investigación, la comunidad ha catalogado miles de patrones. Se clasifican principalmente por su comportamiento dinámico.</p>
+                <div class="patterns-grid" id="patterns-grid">
+                    <!-- generado por JS -->
+                </div>
+            </section>
+
+            <!-- HISTORIA -->
+            <section id="historia" class="scroll-reveal">
+                <div class="sec-label">// Cronología</div>
+                <h2>Historia y Evolución</h2>
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1940s</div>
+                        <h4>Von Neumann y los autómatas celulares</h4>
+                        <p>John von Neumann propone la idea teórica de una máquina capaz de autorreplicarse usando reglas locales sobre una cuadrícula, sentando las bases conceptuales del campo.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1970</div>
+                        <h4>Publicación en Scientific American</h4>
+                        <p>Martin Gardner presenta el Juego de la Vida en su columna Mathematical Games. La respuesta del público es masiva: Gardner recibe más correo sobre este artículo que sobre cualquier otro en su carrera.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1970</div>
+                        <h4>Descubrimiento del Glider</h4>
+                        <p>Richard Guy descubre el Glider, el primer patrón que se desplaza por el tablero. Este hallazgo prueba que el juego puede generar movimiento indefinido.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1970</div>
+                        <h4>Gosper Glider Gun</h4>
+                        <p>Bill Gosper y su equipo en MIT descubren la primera pistola de planeadores, resolviendo una apuesta de Conway sobre si era posible un patrón de crecimiento infinito.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1982</div>
+                        <h4>Turing-completitud demostrada</h4>
+                        <p>Se demuestra formalmente que el Juego de la Vida es Turing-completo: puede simular cualquier máquina de Turing, lo que lo convierte en un sistema computacional universal.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">1994</div>
+                        <h4>Algoritmo HashLife</h4>
+                        <p>Bill Gosper desarrolla HashLife, que usa memoización en árboles de quad para simular millones de generaciones en segundos, permitiendo explorar patrones extremadamente largos.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">2010s</div>
+                        <h4>Computadoras dentro del juego</h4>
+                        <p>La comunidad construye CPUs funcionales, displays de 7 segmentos, memorias y hasta versiones del propio Juego de la Vida corriendo dentro de sí mismo.</p>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-dot"></div>
+                        <div class="tl-year">2020</div>
+                        <h4>Primer replicador conocido</h4>
+                        <p>Se descubre el primer patrón que se autorreplica exactamente tal como Von Neumann había teorizado 70 años antes, cerrando un círculo histórico.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CATÁLOGO -->
+            <section id="complejidad" class="scroll-reveal">
+                <div class="sec-label">// Catálogo</div>
+                <h2>Tabla de Patrones Notables</h2>
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Celdas</th>
+                            <th>Periodo</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Block</td><td><span class="tag tag-still">Still Life</span></td><td>4</td><td>—</td><td>El patrón estático más pequeño posible.</td></tr>
+                        <tr><td>Beehive</td><td><span class="tag tag-still">Still Life</span></td><td>6</td><td>—</td><td>Forma hexagonal estable muy común en simulaciones caóticas.</td></tr>
+                        <tr><td>Loaf</td><td><span class="tag tag-still">Still Life</span></td><td>7</td><td>—</td><td>Otra vida estática frecuente, con forma asimétrica.</td></tr>
+                        <tr><td>Boat</td><td><span class="tag tag-still">Still Life</span></td><td>5</td><td>—</td><td>Pequeña vida estática con forma de bote.</td></tr>
+                        <tr><td>Blinker</td><td><span class="tag tag-osc">Oscilador</span></td><td>3</td><td>2</td><td>El oscilador más pequeño. Alterna entre horizontal y vertical.</td></tr>
+                        <tr><td>Toad</td><td><span class="tag tag-osc">Oscilador</span></td><td>6</td><td>2</td><td>Oscilador de período 2 con forma de sapo.</td></tr>
+                        <tr><td>Beacon</td><td><span class="tag tag-osc">Oscilador</span></td><td>8</td><td>2</td><td>Dos bloques que se "encienden y apagan" en sus esquinas.</td></tr>
+                        <tr><td>Pulsar</td><td><span class="tag tag-osc">Oscilador</span></td><td>48</td><td>3</td><td>Espectacular oscilador de período 3, uno de los más conocidos.</td></tr>
+                        <tr><td>Pentadecathlon</td><td><span class="tag tag-osc">Oscilador</span></td><td>15</td><td>15</td><td>Oscilador de período 15, el más largo de los "comunes".</td></tr>
+                        <tr><td>Glider</td><td><span class="tag tag-ship">Nave</span></td><td>5</td><td>4</td><td>La nave más pequeña. Se desplaza diagonalmente 1 celda cada 4 gen.</td></tr>
+                        <tr><td>LWSS</td><td><span class="tag tag-ship">Nave</span></td><td>9</td><td>4</td><td>Lightweight Spaceship, se mueve horizontalmente.</td></tr>
+                        <tr><td>MWSS</td><td><span class="tag tag-ship">Nave</span></td><td>13</td><td>4</td><td>Mediumweight Spaceship.</td></tr>
+                        <tr><td>HWSS</td><td><span class="tag tag-ship">Nave</span></td><td>15</td><td>4</td><td>Heavyweight Spaceship, la más grande de las básicas.</td></tr>
+                        <tr><td>Gosper Glider Gun</td><td><span class="tag tag-gun">Cañón</span></td><td>36</td><td>30</td><td>Primer cañón descubierto. Emite un Glider cada 30 generaciones.</td></tr>
+                        <tr><td>R-pentomino</td><td><span class="tag tag-other">Methuselah</span></td><td>5</td><td>—</td><td>Solo 5 celdas iniciales que evolucionan durante 1103 generaciones.</td></tr>
+                        <tr><td>Diehard</td><td><span class="tag tag-other">Methuselah</span></td><td>7</td><td>—</td><td>Desaparece completamente tras 130 generaciones exactas.</td></tr>
+                        <tr><td>Acorn</td><td><span class="tag tag-other">Methuselah</span></td><td>7</td><td>—</td><td>7 celdas que generan 633 celdas vivas después de 5206 generaciones.</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- IMPACTO -->
+            <section id="impacto" class="scroll-reveal">
+                <div class="sec-label">// Legado</div>
+                <h2>Impacto Científico y Cultural</h2>
+                <p>El Juego de la Vida trasciende las matemáticas recreativas. Su estudio ha influido en campos tan diversos como la biología computacional, la inteligencia artificial, la filosofía de la mente y la física teórica.</p>
+                <p>El concepto de <strong>emergencia</strong> —la aparición de comportamientos complejos a partir de reglas simples— que el juego ilustra de forma tan pura, es central en la teoría de sistemas complejos y en la comprensión de fenómenos como la vida misma, los mercados financieros o el funcionamiento del cerebro.</p>
+                <p>Su <strong>Turing-completitud</strong> implica que, en principio, cualquier cálculo posible puede realizarse dentro del juego. La comunidad ha construido CPUs de 8 bits, generadores de números primos, calculadoras y hasta versiones completas del propio juego corriendo dentro de él.</p>
+                <p>En informática, los algoritmos de simulación desarrollados para el juego —como <strong>HashLife</strong> de Bill Gosper— son ejemplos perfectos de optimización mediante memoización y estructuras de datos eficientes, con aplicaciones más allá del juego.</p>
+                <p>Culturalmente, el Juego de la Vida es uno de los programas más reimplementados de la historia, presente en prácticamente cada lenguaje de programación existente, y es una introducción canónica a la programación y a los sistemas complejos.</p>
+            </section>
+
+            <!-- VÍDEO -->
+        <section id="video" class="scroll-reveal">
+            <div class="sec-label">// Documental</div>
+            <h2>El Juego de la Vida en Vídeo</h2>
+            <p>Una exploración visual y detallada del Juego de la Vida de Conway: sus reglas, sus patrones más fascinantes y el impacto que ha tenido en matemáticas, computación y ciencia.</p>
+
+            <a class="yt-thumb" href="https://www.youtube.com/watch?v=2ssnMkJFqbA&t=478s" target="_blank">
+                <img src="https://img.youtube.com/vi/2ssnMkJFqbA/maxresdefault.jpg" alt="Conway's Game of Life">
+                <div class="yt-play">
+                    <svg viewBox="0 0 68 48" width="68" height="48">
+                        <path d="M66.52 7.74A8.55 8.55 0 0 0 60.53 1.7C55.2 0 34 0 34 0S12.8 0 7.47 1.7A8.55 8.55 0 0 0 1.48 7.74C0 13.1 0 24 0 24s0 10.9 1.48 16.26a8.55 8.55 0 0 0 5.99 6.04C12.8 48 34 48 34 48s21.2 0 26.53-1.7a8.55 8.55 0 0 0 5.99-6.04C68 34.9 68 24 68 24s0-10.9-1.48-16.26z" fill="#ff0000"/>
+                        <path d="M27 34l18-10-18-10v20z" fill="#fff"/>
+                    </svg>
+                </div>
+                <div class="yt-label">Ver en YouTube &nbsp;↗</div>
+            </a>
+
+            <p class="video-caption">▶ &nbsp; 0:00 - 0:38 &nbsp;·&nbsp; Introducción</p>
+            <p class="video-caption">▶ &nbsp; 0:39 - 3:24 &nbsp;·&nbsp; Reglas del Juego</p>
+            <p class="video-caption">▶ &nbsp; 3:25 - 5:43 &nbsp;·&nbsp; Tipos de configuraciones</p>
+            <p class="video-caption">▶ &nbsp; 5:44 - 6:52 &nbsp;·&nbsp; Gosper Glider Gun</p>
+            <p class="video-caption">▶ &nbsp; 10:16 - 12:28 &nbsp;·&nbsp; Cómo se puede programar</p>
+            <p class="video-caption">▶ &nbsp; 12:29 - 16:29 &nbsp;·&nbsp; Ejemplos sorprendentes</p>
+        </section>
+
+            <!-- DOCUMENTACIÓN -->
+            <section id="documentacion" class="scroll-reveal">
+                <div class="sec-label">// Recursos</div>
+                <h2>Recursos del Proyecto</h2>
+                <p>Consulta la documentación técnica de la implementación o descarga el juego para Windows.</p>
+
+                <div class="resource-list">
+                    
+                <div class="resource-card">
+                    <div class="resource-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <path d="M12 11v7"/>
+                            <polyline points="9 15 12 18 15 15"/>
+                        </svg>
+                    </div>
+                    <div class="resource-info">
+                        <div class="resource-info-title">Conway's Game of Life</div>
+                        <div class="resource-info-meta">EXE · Aplicación para Windows</div>
+                        <p>Descarga el juego para Windows desde su release de GitHub.</p>
+                    </div>
+                    <a class="resource-btn" href="https://github.com/USUARIO/REPOSITORIO/releases/latest" target="_blank" rel="noopener noreferrer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Descargar .exe
+                    </a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                    </div>
+                    <div class="resource-info">
+                        <div class="resource-info-title">FormMain.cs — Documentación del Código</div>
+                        <div class="resource-info-meta">PDF · Documentación técnica · C# Windows Forms</div>
+                        <p>Explica el funcionamiento de cada componente del formulario principal: grid, simulación B3/S23, renderizado GDI+, doble buffer, zoom/pan, patrones predefinidos e interacción con el usuario.</p>
+                    </div>
+                    <a class="resource-btn" href="" target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Abrir PDF
+                    </a>
+                </div>
+                
+                </div>
+            </section>
+
+            <footer>
+                <p>Conway's Game of Life &mdash; <span>B3/S23</span> &mdash; John Horton Conway, 1970</p>
+                <p style="margin-top:8px;">Información compilada con fines educativos<span class="blink">_</span></p>
+            </footer>
+
+            </div><!-- /conway-view -->
+
+            <div id="space-invaders-view" class="game-view space-invaders-page" hidden>
+                <header class="hero">
+                    <div class="hero-tag">Arcade · Python + Pygame</div>
+                    <img class="space-invaders-logo" src="img/space invaders - logo.png" alt="" aria-hidden="true">
+                    <p class="hero-sub">
+                        La humanidad frente a una invasión extraterrestre.<br>
+                        Apunta, sobrevive y defiende cada oleada<span class="blink">_</span>
+                    </p>
+                    <div class="hero-divider"></div>
+                </header>
+
+                <nav class="section-nav" aria-label="Secciones de Space Invaders">
+                    <a href="#invaders">El juego</a>
+                    <a href="#controles">Controles</a>
+                    <a href="#invasores">Invasores</a>
+                    <a href="#arsenal">Arsenal</a>
+                    <a href="#progresion">Progresión</a>
+                    <a href="#desarrollo">Desarrollo</a>
+                    <a href="#recursos">Recursos</a>
+                </nav>
+
+                <section id="invaders" class="scroll-reveal">
+                    <div class="sec-label">// Misión</div>
+                    <h2>Defiende la Tierra</h2>
+                    <p>Controla una nave en la parte inferior de la pantalla y elimina a las formaciones alienígenas antes de que alcancen tu posición. Cada enemigo abatido suma puntos, pero sus disparos y el avance de la formación convierten cada oleada en un nuevo desafío.</p>
+                    <div class="stats-grid">
+                        <div class="stat-card"><span class="stat-key">Resolución</span><span class="stat-val">800 × 700</span></div>
+                        <div class="stat-card"><span class="stat-key">Rendimiento</span><span class="stat-val">60 FPS</span></div>
+                        <div class="stat-card"><span class="stat-key">Formación</span><span class="stat-val">55 invasores</span></div>
+                        <div class="stat-card"><span class="stat-key">Jefes</span><span class="stat-val">Cada 5 oleadas</span></div>
+                    </div>
+                </section>
+
+                <section id="controles" class="scroll-reveal">
+                    <div class="sec-label">// Protocolo de control</div>
+                    <h2>Cómo se juega</h2>
+                    <p>Desplázate para esquivar los proyectiles y dispara para despejar la formación. Los bunkers ofrecen cobertura, aunque cada impacto puede ir abriéndoles un agujero.</p>
+                    <div class="rules-grid">
+                        <div class="rule-card"><div class="rule-num">01</div><h3>Mover a la izquierda</h3><p>Usa <strong>←</strong> o <strong>A</strong> para desplazar la nave hacia el flanco izquierdo.</p></div>
+                        <div class="rule-card"><div class="rule-num">02</div><h3>Mover a la derecha</h3><p>Usa <strong>→</strong> o <strong>D</strong> para cubrir el lado derecho de la pantalla.</p></div>
+                        <div class="rule-card"><div class="rule-num">03</div><h3>Disparar</h3><p>Pulsa <strong>ESPACIO</strong> para lanzar proyectiles hacia los invasores.</p></div>
+                        <div class="rule-card"><div class="rule-num">04</div><h3>Pausar</h3><p>Pulsa <strong>P</strong> para detener la partida y volver a la acción cuando quieras.</p></div>
+                    </div>
+                </section>
+
+                <section id="invasores" class="scroll-reveal">
+                    <div class="sec-label">// Objetivos identificados</div>
+                    <h2>La formación invasora</h2>
+                    <p>La formación estándar contiene cinco filas de once enemigos. Sus sprites pixel art alternan entre dos poses al avanzar; los invasores de las filas superiores valen más puntos.</p>
+                    <div class="enemy-grid">
+                        <article class="enemy-card">
+                            <canvas class="enemy-sprite" data-sprite="green" aria-hidden="true"></canvas>
+                            <div class="pattern-category">Fila superior · Verde</div>
+                            <h3>Invasor ligero</h3>
+                            <p>La fila más alta de la formación. Cada unidad destruida suma <strong>30 puntos</strong>.</p>
+                        </article>
+                        <article class="enemy-card">
+                            <canvas class="enemy-sprite" data-sprite="yellow" aria-hidden="true"></canvas>
+                            <div class="pattern-category">Filas centrales · Amarillo</div>
+                            <h3>Invasor medio</h3>
+                            <p>Dos filas forman el centro de la escuadra. Cada objetivo suma <strong>20 puntos</strong>.</p>
+                        </article>
+                        <article class="enemy-card">
+                            <canvas class="enemy-sprite" data-sprite="red" aria-hidden="true"></canvas>
+                            <div class="pattern-category">Filas inferiores · Rojo</div>
+                            <h3>Invasor pesado</h3>
+                            <p>Las dos filas más cercanas a los bunkers. Cada enemigo suma <strong>10 puntos</strong>.</p>
+                        </article>
+                        <article class="enemy-card">
+                            <canvas class="enemy-sprite" data-sprite="ufo" aria-hidden="true"></canvas>
+                            <div class="pattern-category">Aparición ocasional · Violeta</div>
+                            <h3>Platillo volante</h3>
+                            <p>Cruza la pantalla de un extremo a otro y recompensa con una puntuación variable.</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section id="arsenal" class="scroll-reveal">
+                    <div class="sec-label">// Equipamiento</div>
+                    <h2>Nave, bunkers y mejoras</h2>
+                    <div class="bio-grid arsenal-grid">
+                        <div class="arcade-equipment">
+                            <canvas class="equipment-ship" data-sprite="player" aria-hidden="true"></canvas>
+                            <canvas class="equipment-bunker" data-sprite="bunker" aria-hidden="true"></canvas>
+                            <div class="equipment-label">NAVE DE DEFENSA &nbsp; / &nbsp; BUNKER REFORZADO</div>
+                        </div>
+                        <div>
+                            <p>La nave puede mantener hasta <strong>tres vidas</strong>. Cuatro bunkers rosas forman una barrera entre el jugador y la formación enemiga; tanto los disparos aliados como los hostiles pueden dañarlos.</p>
+                            <p>Algunos enemigos dejan caer mejoras que descienden por la pantalla. Recógelas antes de que desaparezcan para cambiar el rumbo del combate:</p>
+                            <ul class="powerup-list">
+                                <li><span class="powerup-chip life">V</span><span><strong>Vida extra</strong> — recupera una vida si aún no has alcanzado el máximo.</span></li>
+                                <li><span class="powerup-chip shield">E</span><span><strong>Escudo</strong> — protege temporalmente la nave.</span></li>
+                                <li><span class="powerup-chip triple">T</span><span><strong>Disparo triple</strong> — lanza tres proyectiles en abanico durante un tiempo limitado.</span></li>
+                                <li><span class="powerup-chip bunker">B</span><span><strong>Reparación</strong> — restaura la cobertura de los bunkers.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="progresion" class="scroll-reveal">
+                    <div class="sec-label">// Amenaza creciente</div>
+                    <h2>Oleadas y jefes</h2>
+                    <div class="timeline">
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">OLEADAS 01–04</div><h4>Formación alienígena</h4><p>Una escuadra de 55 invasores se mueve en bloque, cambia de dirección al tocar los límites y desciende hacia la defensa.</p></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">CADA 5 OLEADAS</div><h4>Enfrentamiento con el jefe</h4><p>La formación da paso a un jefe con barra de salud. Es más rápido, dispara en abanico y se vuelve más resistente en cada aparición.</p></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">DIFICULTAD</div><h4>El ritmo se acelera</h4><p>El menú permite elegir entre Fácil, Normal y Difícil, además de dos mapas: Clásico, con cuatro bunkers, y Abierto, con dos.</p></div>
+                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">RÉCORDS</div><h4>Una marca persistente</h4><p>La puntuación máxima y la oleada más alta quedan guardadas junto con la fecha del récord.</p></div>
+                    </div>
+                </section>
+
+                <section id="desarrollo" class="scroll-reveal">
+                    <div class="sec-label">// Bajo el capó</div>
+                    <h2>Una recreativa hecha en Python</h2>
+                    <p>El proyecto está desarrollado con <strong>Python y Pygame</strong>. La pantalla de 800 × 700 píxeles se actualiza a 60 fotogramas por segundo y representa personajes y elementos mediante sprites construidos con patrones de píxeles.</p>
+                    <p>La lógica separa al jugador, los invasores, los proyectiles, los bunkers, las mejoras, las partículas y el campo de estrellas en componentes propios. Un gestor coordina las colisiones, oleadas, dificultad, música y efectos de sonido.</p>
+                    <div class="tech-grid">
+                        <div class="tech-card"><span class="tech-index">01</span><h3>Sprites pixel art</h3><p>Patrones de texto se convierten en gráficos retro escalados sin suavizado.</p></div>
+                        <div class="tech-card"><span class="tech-index">02</span><h3>Colisiones precisas</h3><p>Máscaras de píxeles permiten que los impactos alteren también los bunkers.</p></div>
+                        <div class="tech-card"><span class="tech-index">03</span><h3>Audio y ambiente</h3><p>Música, efectos, partículas y estrellas acompañan el ritmo de la partida.</p></div>
+                    </div>
+                </section>
+
+                <section id="recursos" class="scroll-reveal">
+                    <div class="sec-label">// Recursos</div>
+                    <h2>Descarga el juego</h2>
+                    <div class="resource-card">
+                        <div>
+                            <div class="resource-meta">EJECUTABLE DE WINDOWS · .EXE</div>
+                            <h3>Space Invaders</h3>
+                            <p>Descarga el juego para Windows desde su release de GitHub.</p>
+                        </div>
+                        <a class="resource-btn" href="https://github.com/USUARIO/REPOSITORIO/releases/latest" target="_blank" rel="noopener noreferrer">
+                            Descargar .exe <span aria-hidden="true">↗</span>
+                        </a>
+                    </div>
+                </section>
+
+                <footer>
+                    <p>SPACE INVADERS &mdash; <span>DEFENSA PLANETARIA</span></p>
+                    <p style="margin-top:8px;">Proyecto arcade desarrollado con Python + Pygame<span class="blink">_</span></p>
+                </footer>
+            </div>
+
+        </div>
+
+        <script src="js/common.js"></script>
+        <script src="js/conway.js"></script>
+        <script src="js/space_invaders.JS"></script>
+
+    </body>
+</html>

@@ -1,0 +1,9 @@
+# Quitar una vez pulido
+games/Life of Conway
+
+
+__pycache__
+.venv
+build
+dist
+Comands.md

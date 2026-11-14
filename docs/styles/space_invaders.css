@@ -1,0 +1,603 @@
+:root {
+    --arcade-bg: #050608;
+    --arcade-panel: rgba(5, 7, 9, 0.84);
+    --arcade-line: rgba(20, 220, 240, 0.3);
+    --arcade-cyan: #14dcf0;
+    --arcade-green: #32eb32;
+    --arcade-yellow: #ebeb32;
+    --arcade-red: #eb3232;
+    --arcade-pink: #eb788c;
+    --arcade-purple: #c832c8;
+}
+
+body.space-invaders-active {
+    --bg: var(--arcade-bg);
+    --bg2: #080a0c;
+    --cell: var(--arcade-cyan);
+    --cell-hi: var(--arcade-cyan);
+    --glow: var(--arcade-cyan);
+    --grid: #161827;
+    --text: #e8ebee;
+    --text-dim: #9299a1;
+    --accent: var(--arcade-cyan);
+    --border: var(--arcade-line);
+    background: var(--arcade-bg);
+}
+
+body.space-invaders-active::after {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
+}
+
+body.space-invaders-active #bg-canvas {
+    opacity: 0;
+}
+
+#invaders-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+body.space-invaders-active #invaders-background {
+    display: block;
+}
+
+body.space-invaders-active .site {
+    max-width: 1120px;
+}
+
+body.space-invaders-active .game-switch {
+    gap: 0;
+    padding: 18px 0 0;
+}
+
+body.space-invaders-active .game-switch .game-tab {
+    padding: 10px 14px;
+    border-color: rgba(235, 120, 140, 0.5);
+    background: #07090b;
+    color: #a7adb3;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+}
+
+body.space-invaders-active .game-switch .soundtrack-toggle {
+    margin-left: 12px;
+    padding: 10px 14px;
+    border-color: rgba(235, 120, 140, 0.5);
+    background: #07090b;
+    color: #a7adb3;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+}
+
+body.space-invaders-active .game-switch .game-tab + .game-tab {
+    border-left: 0;
+}
+
+body.space-invaders-active .game-switch .soundtrack-toggle:hover:not(:disabled),
+body.space-invaders-active .game-switch .soundtrack-toggle:focus-visible {
+    border-color: var(--arcade-cyan);
+    color: var(--arcade-cyan);
+}
+
+body.space-invaders-active .game-switch .game-tab:hover,
+body.space-invaders-active .game-switch .game-tab.is-active {
+    border-color: var(--arcade-cyan);
+    background: #10191b;
+    color: var(--arcade-cyan);
+    box-shadow: inset 0 -3px 0 var(--arcade-cyan);
+}
+
+body.space-invaders-active .game-switch .game-tab:focus-visible,
+body.space-invaders-active .section-nav a:focus-visible {
+    outline: 2px solid var(--arcade-yellow);
+    outline-offset: 3px;
+}
+
+.space-invaders-page {
+    color: #e8ebee;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.space-invaders-page .hero {
+    isolation: isolate;
+    padding: 70px 0 30px;
+    border-bottom: 1px solid rgba(20, 220, 240, 0.24);
+    text-align: left;
+}
+
+.space-invaders-page .hero::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0 -30px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.65) 52%, transparent 100%);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    content: '';
+    pointer-events: none;
+}
+
+.space-invaders-page .hero-tag {
+    display: inline-block;
+    padding: 7px 10px;
+    border: 1px solid rgba(50, 235, 50, 0.45);
+    color: var(--arcade-green);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+}
+
+.space-invaders-page .space-invaders-logo {
+    display: block;
+    width: min(100%, 560px);
+    height: auto;
+    margin: 0 auto 22px;
+}
+
+.space-invaders-page .hero h1 {
+    color: #f2f2eb;
+    font-family: 'Press Start 2P', 'Share Tech Mono', monospace;
+    font-size: clamp(1.35rem, 5vw, 3.5rem);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.45;
+    text-shadow: 0 2px 6px #000, 4px 4px 0 rgba(20, 220, 240, 0.16);
+}
+
+.space-invaders-page .hero h1 span {
+    color: var(--arcade-cyan);
+}
+
+.space-invaders-page .hero-sub {
+    max-width: 620px;
+    margin: 20px auto 0;
+    color: #b7c0c6;
+    font-size: 1rem;
+    line-height: 1.7;
+    text-shadow: 0 1px 5px #000;
+    text-align: center;
+}
+
+.space-invaders-page .hero-divider {
+    display: none;
+}
+
+.space-invaders-page .section-nav {
+    justify-content: flex-start;
+    gap: 0;
+    padding: 22px 0 32px;
+    border-bottom: 1px solid rgba(235, 120, 140, 0.35);
+}
+
+.space-invaders-page .section-nav a {
+    padding: 9px 13px;
+    border: 0;
+    border-right: 1px solid rgba(235, 120, 140, 0.3);
+    color: #aeb5bb;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+}
+
+.space-invaders-page .section-nav a:first-child {
+    border-left: 1px solid rgba(235, 120, 140, 0.3);
+}
+
+.space-invaders-page .section-nav a:hover {
+    background: rgba(20, 220, 240, 0.08);
+    color: var(--arcade-cyan);
+    box-shadow: inset 0 -2px 0 var(--arcade-cyan);
+}
+
+.space-invaders-page section {
+    isolation: isolate;
+    margin-bottom: 32px;
+    padding: 26px 30px 30px;
+    border: 1px solid rgba(20, 220, 240, 0.23);
+    border-left: 3px solid var(--arcade-cyan);
+    background: var(--arcade-panel);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.space-invaders-page section::before {
+    display: none;
+}
+
+.space-invaders-page .sec-label {
+    margin-bottom: 12px;
+    color: var(--arcade-green);
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+}
+
+.space-invaders-page h2 {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed rgba(20, 220, 240, 0.32);
+    color: #f3f4f0;
+    font-family: 'Press Start 2P', 'Share Tech Mono', monospace;
+    font-size: clamp(0.82rem, 2.5vw, 1.15rem);
+    font-weight: 400;
+    line-height: 1.7;
+}
+
+.space-invaders-page p {
+    color: #c3c9ce;
+    font-size: 0.92rem;
+    line-height: 1.75;
+}
+
+.space-invaders-page strong {
+    color: var(--arcade-cyan);
+    font-weight: 700;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.stat-card {
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid rgba(235, 120, 140, 0.36);
+    border-top: 2px solid var(--arcade-pink);
+    background: rgba(13, 14, 17, 0.96);
+}
+
+.stat-card .stat-key {
+    color: #8c939a;
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.stat-card .stat-val {
+    color: var(--arcade-cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+}
+
+.space-invaders-page .rules-grid {
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.space-invaders-page .rule-card {
+    min-height: 142px;
+    border-color: rgba(20, 220, 240, 0.24);
+    border-radius: 0;
+    background: rgba(12, 15, 17, 0.9);
+}
+
+.space-invaders-page .rule-card:hover {
+    border-color: var(--arcade-cyan);
+    background: rgba(12, 23, 25, 0.98);
+}
+
+.space-invaders-page .rule-card h3 {
+    color: var(--arcade-cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+}
+
+.space-invaders-page .rule-card p {
+    color: #b6bec3;
+}
+
+.space-invaders-page .rule-num {
+    color: rgba(235, 120, 140, 0.48);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.9rem;
+}
+
+.enemy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.enemy-card,
+.tech-card {
+    padding: 18px;
+    border: 1px solid rgba(20, 220, 240, 0.2);
+    border-radius: 0;
+    background: rgba(10, 12, 14, 0.9);
+    transition: border-color 0.18s, transform 0.18s;
+}
+
+.enemy-card:hover,
+.tech-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--arcade-cyan);
+}
+
+.enemy-sprite {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto 16px;
+    image-rendering: pixelated;
+}
+
+.enemy-card .pattern-category {
+    color: var(--arcade-cyan);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+}
+
+.enemy-card h3,
+.tech-card h3 {
+    margin: 10px 0;
+    color: #eef0ed;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.enemy-card p,
+.tech-card p {
+    margin: 0;
+    color: #aeb5bb;
+    font-size: 0.79rem;
+    line-height: 1.65;
+}
+
+.space-invaders-page .arsenal-grid {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 26px;
+    align-items: center;
+}
+
+.arcade-equipment {
+    min-height: 230px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    border: 1px solid rgba(235, 120, 140, 0.34);
+    background-color: #020303;
+    background-image: radial-gradient(circle, rgba(220, 220, 255, 0.45) 1px, transparent 1.5px), radial-gradient(circle, rgba(140, 140, 180, 0.35) 1px, transparent 1.5px);
+    background-position: 14px 20px, 39px 47px;
+    background-size: 83px 71px, 107px 89px;
+}
+
+.equipment-ship {
+    width: 44px;
+    height: 28px;
+    image-rendering: pixelated;
+}
+
+.equipment-bunker {
+    width: 88px;
+    height: 52px;
+    image-rendering: pixelated;
+}
+
+.equipment-label {
+    color: #9299a1;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+
+.powerup-list {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.powerup-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #c3c9ce;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.powerup-chip {
+    flex: 0 0 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid currentColor;
+    font-size: 0.8rem;
+}
+
+.powerup-chip.life { color: var(--arcade-green); }
+.powerup-chip.shield { color: #3296ff; }
+.powerup-chip.triple { color: var(--arcade-yellow); }
+.powerup-chip.bunker { color: var(--arcade-pink); }
+
+.space-invaders-page .timeline {
+    margin-top: 24px;
+}
+
+.space-invaders-page .timeline::before {
+    background: linear-gradient(to bottom, var(--arcade-pink), rgba(235, 120, 140, 0.08));
+}
+
+.space-invaders-page .tl-dot {
+    border-color: var(--arcade-cyan);
+    background: #050608;
+    box-shadow: 0 0 8px rgba(20, 220, 240, 0.55);
+}
+
+.space-invaders-page .tl-year {
+    color: var(--arcade-green);
+}
+
+.space-invaders-page .tl-item h4 {
+    color: #edf0ed;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.96rem;
+}
+
+.space-invaders-page .tl-item p {
+    color: #aeb5bb;
+}
+
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.tech-index {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--arcade-pink);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+}
+
+.tech-card h3 {
+    text-align: left;
+}
+
+.resource-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px;
+    border: 1px solid rgba(20, 220, 240, 0.3);
+    background: rgba(10, 12, 14, 0.9);
+}
+
+.resource-meta {
+    margin-bottom: 10px;
+    color: var(--arcade-green);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+}
+
+.resource-card h3 {
+    margin-bottom: 8px;
+    color: #eef0ed;
+    font-size: 1.1rem;
+}
+
+.resource-card p {
+    margin: 0;
+}
+
+.resource-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--arcade-cyan);
+    color: var(--arcade-cyan);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+}
+
+.resource-btn:hover,
+.resource-btn:focus-visible {
+    background: var(--arcade-cyan);
+    color: #050608;
+}
+
+.resource-btn:focus-visible {
+    outline: 2px solid var(--arcade-yellow);
+    outline-offset: 3px;
+}
+
+.space-invaders-page footer {
+    padding: 28px 0 20px;
+    border-top: 2px solid rgba(235, 120, 140, 0.65);
+    color: #969da4;
+    font-size: 0.74rem;
+}
+
+.space-invaders-page footer::before {
+    display: none;
+}
+
+.space-invaders-page footer span {
+    color: var(--arcade-cyan);
+}
+
+@media (max-width: 700px) {
+    body.space-invaders-active .site {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .space-invaders-page .hero {
+        padding-top: 48px;
+    }
+
+    .space-invaders-page .section-nav {
+        gap: 4px;
+    }
+
+    .space-invaders-page .section-nav a {
+        padding: 8px 9px;
+    }
+
+    .space-invaders-page section {
+        padding: 21px 19px 24px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .space-invaders-page .arsenal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tech-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resource-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .resource-btn {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    body.space-invaders-active .game-switch .game-tab {
+        padding: 8px 9px;
+        font-size: 0.68rem;
+    }
+
+    .space-invaders-page .section-nav a {
+        font-size: 0.67rem;
+    }
+
+    .space-invaders-page .hero h1 {
+        font-size: clamp(1.14rem, 5.4vw, 1.45rem);
+    }
+
+}
