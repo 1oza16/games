@@ -3,12 +3,22 @@ import random
 import sys
 import os
 import json
+import webbrowser
 from datetime import datetime
 
 pygame.init()
 
-WIDTH, HEIGHT = 800, 700
+BASE_WIDTH, BASE_HEIGHT = 800, 700
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+WIDTH, HEIGHT = screen.get_size()
+DISPLAY_SCALE = max(0.65, min(WIDTH / BASE_WIDTH, HEIGHT / BASE_HEIGHT))
 FPS = 60
+
+def scale_value(value):
+    if value == 0:
+        return 0
+    scaled = max(1, round(abs(value) * DISPLAY_SCALE))
+    return scaled if value > 0 else -scaled
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -20,19 +30,30 @@ PINK_BUNKER = (235, 120, 140)
 PURPLE_UFO = (200, 50, 200)
 BLUE_SHIELD = (50, 150, 255)
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-BUNDLED_RECORDS_PATH = os.path.join(DATA_DIR, "records.json")
+RESOURCE_DIR = getattr(
+    sys,
+    "_MEIPASS",
+    os.path.dirname(os.path.abspath(__file__))
+)
+DATA_DIR = os.path.join(RESOURCE_DIR, "data")
 if getattr(sys, "frozen", False):
-    RECORDS_PATH = os.path.join(
-        os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
-        "SpaceInvaders",
-        "records.json"
-    )
+    IMAGE_DIR = os.path.join(RESOURCE_DIR, "img")
 else:
-    RECORDS_PATH = BUNDLED_RECORDS_PATH
+    IMAGE_DIR = os.path.abspath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..", "..", "docs", "img"
+    ))
+pygame.display.set_icon(
+    pygame.image.load(os.path.join(IMAGE_DIR, "space invaders - favicon.png"))
+)
+BUNDLED_RECORDS_PATH = os.path.join(DATA_DIR, "records.json")
+RECORDS_PATH = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
+    "SpaceInvaders",
+    "records.json"
+)
 
 class RetroFont:
     def __init__(self, name, size, scale=2):
@@ -47,26 +68,25 @@ class RetroFont:
         )
         return pygame.transform.scale(text_surface, scaled_size)
 
-font_ui = RetroFont("Courier", 24)
-font_large = RetroFont("Courier", 52)
-font_menu = RetroFont("Courier", 30)
-font_powerup = RetroFont("Courier", 16)
+font_ui = RetroFont("Courier", scale_value(24))
+font_large = RetroFont("Courier", scale_value(52))
+font_menu = RetroFont("Courier", scale_value(30))
+font_powerup = RetroFont("Courier", scale_value(16))
 
 def load_records():
-    records_path = RECORDS_PATH
-    if not os.path.exists(records_path):
-        records_path = BUNDLED_RECORDS_PATH
+    has_shared_records = os.path.exists(RECORDS_PATH)
+    records_path = RECORDS_PATH if has_shared_records else BUNDLED_RECORDS_PATH
 
-    if not os.path.exists(records_path):
-        return {
+    if os.path.exists(records_path):
+        with open(records_path, "r", encoding="utf-8") as records_file:
+            records = json.load(records_file)
+    else:
+        records = {
             "high_score": 0,
             "high_score_date": None,
             "max_wave": 0,
             "max_wave_date": None
         }
-
-    with open(records_path, "r", encoding="utf-8") as records_file:
-        records = json.load(records_file)
 
     if not isinstance(records, dict):
         raise ValueError("El archivo records.json debe contener un objeto JSON.")
@@ -78,6 +98,9 @@ def load_records():
     for key in ("high_score_date", "max_wave_date"):
         if records.get(key) is not None and not isinstance(records[key], str):
             raise ValueError(f"La fecha '{key}' de records.json no es válida.")
+
+    if not has_shared_records:
+        save_records(records)
 
     return records
 
@@ -95,8 +118,8 @@ DIFFICULTY_SETTINGS = {
 }
 
 MAP_LAYOUTS = {
-    "Clásico": [90, 265, 440, 615],
-    "Abierto": [130, 580]
+    "Clásico": [0.1125, 0.33125, 0.55, 0.76875],
+    "Abierto": [0.1625, 0.725]
 }
 
 ALIEN_GREEN = [
@@ -133,6 +156,7 @@ BUNKER_PATTERN = [
 ]
 
 def build_sprite(pattern_list, color, scale=3):
+    scale = scale_value(scale)
     width, height = len(pattern_list[0]), len(pattern_list)
     surface = pygame.Surface((width * scale, height * scale), pygame.SRCALPHA)
     for y, row in enumerate(pattern_list):
@@ -145,9 +169,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = build_sprite(PLAYER_PATTERN, CYAN, scale=4)
-        self.rect = self.image.get_rect(midbottom=(WIDTH // 2, HEIGHT - 50))
+        self.rect = self.image.get_rect(midbottom=(WIDTH // 2, HEIGHT - scale_value(50)))
         self.mask = pygame.mask.from_surface(self.image)
-        self.speed = 5
+        self.speed = scale_value(5)
         self.shoot_cooldown = 0
         self.lives = 3
         
@@ -156,9 +180,9 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         keys = pygame.key.get_pressed()
-        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and self.rect.left > 10:
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and self.rect.left > scale_value(10):
             self.rect.x -= self.speed
-        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.rect.right < WIDTH - 10:
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.rect.right < WIDTH - scale_value(10):
             self.rect.x += self.speed
             
         if self.shoot_cooldown > 0:
@@ -171,8 +195,8 @@ class Player(pygame.sprite.Sprite):
         if self.shoot_cooldown == 0:
             if self.triple_shot_timer > 0:
                 bullets_group.add(Bullet(self.rect.centerx, self.rect.top, -10, WHITE))
-                bullets_group.add(Bullet(self.rect.centerx - 15, self.rect.top + 5, -10, WHITE))
-                bullets_group.add(Bullet(self.rect.centerx + 15, self.rect.top + 5, -10, WHITE))
+                bullets_group.add(Bullet(self.rect.centerx - scale_value(15), self.rect.top + scale_value(5), -10, WHITE))
+                bullets_group.add(Bullet(self.rect.centerx + scale_value(15), self.rect.top + scale_value(5), -10, WHITE))
             else:
                 bullets_group.add(Bullet(self.rect.centerx, self.rect.top, -10, WHITE))
             
@@ -183,7 +207,7 @@ class Player(pygame.sprite.Sprite):
 
     def draw_shield(self, surface):
         if self.shield_active:
-            pygame.draw.circle(surface, BLUE_SHIELD, self.rect.center, 35, 3)
+            pygame.draw.circle(surface, BLUE_SHIELD, self.rect.center, scale_value(35), scale_value(3))
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self, x, y, frames_patterns, color, score_value):
@@ -208,14 +232,14 @@ class BossUFO(pygame.sprite.Sprite):
         self.image = build_sprite(UFO_PATTERN, PURPLE_UFO, scale=3)
         self.mask = pygame.mask.from_surface(self.image)
         self.direction = random.choice([-1, 1])
-        start_x = -60 if self.direction == 1 else WIDTH + 60
-        self.rect = self.image.get_rect(topleft=(start_x, 70))
-        self.speed = 3
+        start_x = -scale_value(60) if self.direction == 1 else WIDTH + scale_value(60)
+        self.rect = self.image.get_rect(topleft=(start_x, scale_value(70)))
+        self.speed = scale_value(3)
         self.score_value = random.choice([50, 100, 150, 300])
 
     def update(self):
         self.rect.x += self.speed * self.direction
-        if self.rect.right < -150 or self.rect.left > WIDTH + 150:
+        if self.rect.right < -scale_value(150) or self.rect.left > WIDTH + scale_value(150):
             self.kill()
 
 class AlienBoss(pygame.sprite.Sprite):
@@ -232,13 +256,13 @@ class AlienBoss(pygame.sprite.Sprite):
         ]
         self.current_frame = 0
         self.image = self.frames[self.current_frame]
-        self.rect = self.image.get_rect(midtop=(WIDTH // 2, 110))
+        self.rect = self.image.get_rect(midtop=(WIDTH // 2, scale_value(110)))
         self.mask = pygame.mask.from_surface(self.image)
 
         boss_number = wave // 5
         self.max_health = 5 + (boss_number - 1) * 2
         self.health = self.max_health
-        self.speed = 2 + boss_number
+        self.speed = scale_value(2 + boss_number)
         self.direction = random.choice([-1, 1])
         self.animation_timer = 0
         self.shoot_timer = 60
@@ -247,11 +271,11 @@ class AlienBoss(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.speed * self.direction
-        if self.rect.left <= 20:
-            self.rect.left = 20
+        if self.rect.left <= scale_value(20):
+            self.rect.left = scale_value(20)
             self.direction = 1
-        elif self.rect.right >= WIDTH - 20:
-            self.rect.right = WIDTH - 20
+        elif self.rect.right >= WIDTH - scale_value(20):
+            self.rect.right = WIDTH - scale_value(20)
             self.direction = -1
 
         self.animation_timer += 1
@@ -261,7 +285,7 @@ class AlienBoss(pygame.sprite.Sprite):
             self.image = self.frames[self.current_frame]
 
     def shoot(self, bullets_group):
-        for offset, speed_x in ((-24, -2), (0, 0), (24, 2)):
+        for offset, speed_x in ((-scale_value(24), -2), (0, 0), (scale_value(24), 2)):
             bullets_group.add(
                 Bullet(
                     self.rect.centerx + offset,
@@ -282,17 +306,17 @@ class Bunker(pygame.sprite.Sprite):
 
     def take_damage(self, bullet_rect):
         hit_x, hit_y = bullet_rect.centerx - self.rect.x, bullet_rect.centery - self.rect.y
-        pygame.draw.circle(self.image, (0, 0, 0, 0), (hit_x, hit_y), 12)
+        pygame.draw.circle(self.image, (0, 0, 0, 0), (hit_x, hit_y), scale_value(12))
         self.mask = pygame.mask.from_surface(self.image)
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, speed_y, color, speed_x=0):
         super().__init__()
-        self.image = pygame.Surface((4, 16))
+        self.image = pygame.Surface((scale_value(4), scale_value(16)))
         self.image.fill(color)
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed_y = speed_y
-        self.speed_x = speed_x
+        self.speed_y = scale_value(speed_y)
+        self.speed_x = scale_value(speed_x) if speed_x else 0
 
     def update(self):
         self.rect.y += self.speed_y
@@ -304,7 +328,8 @@ class PowerUp(pygame.sprite.Sprite):
     def __init__(self, x, y, type_code):
         super().__init__()
         self.type_code = type_code
-        self.image = pygame.Surface((24, 24))
+        size = scale_value(24)
+        self.image = pygame.Surface((size, size))
         
         # Mapeo de tipos y colores
         # V = Vida, E = Escudo, T = Triple, B = Bunkers
@@ -312,27 +337,30 @@ class PowerUp(pygame.sprite.Sprite):
         color = color_map.get(type_code, WHITE)
         
         self.image.fill(color)
-        pygame.draw.rect(self.image, WHITE, self.image.get_rect(), 2)
+        pygame.draw.rect(self.image, WHITE, self.image.get_rect(), scale_value(2))
         
         text = font_powerup.render(type_code, True, BLACK)
-        text_rect = text.get_rect(center=(12, 12))
+        text_rect = text.get_rect(center=self.image.get_rect().center)
         self.image.blit(text, text_rect)
         
         self.rect = self.image.get_rect(center=(x, y))
 
     def update(self):
-        self.rect.y += 3
+        self.rect.y += scale_value(3)
         if self.rect.top > HEIGHT:
             self.kill()
 
 class Particle(pygame.sprite.Sprite):
     def __init__(self, x, y, color):
         super().__init__()
-        self.image = pygame.Surface((random.randint(3, 5), random.randint(3, 5)))
+        self.image = pygame.Surface((
+            scale_value(random.randint(3, 5)),
+            scale_value(random.randint(3, 5))
+        ))
         self.image.fill(color)
         self.rect = self.image.get_rect(center=(x, y))
-        self.vel_x = random.uniform(-4, 4)
-        self.vel_y = random.uniform(-4, 4)
+        self.vel_x = random.uniform(-4, 4) * DISPLAY_SCALE
+        self.vel_y = random.uniform(-4, 4) * DISPLAY_SCALE
         self.lifetime = random.randint(15, 35)
 
     def update(self):
@@ -346,8 +374,8 @@ class Star:
     def __init__(self):
         self.x = random.randrange(WIDTH)
         self.y = random.randrange(HEIGHT)
-        self.speed = random.uniform(0.5, 2)
-        self.size = random.choice((1, 2, 3))
+        self.speed = random.uniform(0.5, 2) * DISPLAY_SCALE
+        self.size = scale_value(random.choice((1, 2, 3)))
         self.color = random.choice(((100, 100, 130), (170, 170, 200), WHITE))
 
     def update(self, speed_multiplier):
@@ -360,7 +388,9 @@ class Star:
         pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.size)
 
 class StarField:
-    def __init__(self, count=100):
+    def __init__(self, count=None):
+        if count is None:
+            count = scale_value(100)
         self.stars = [Star() for _ in range(count)]
         self.speed_multiplier = 1
 
@@ -381,13 +411,12 @@ def show_intro():
         "audio",
         "Intro.mp3"
     )
-    logo_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "img",
-        "logo.png"
-    )
+    logo_path = os.path.join(IMAGE_DIR, "space invaders - logo.png")
     logo = pygame.image.load(logo_path).convert_alpha()
-    logo_scale = min((WIDTH - 80) / logo.get_width(), 250 / logo.get_height())
+    logo_scale = min(
+        (WIDTH - scale_value(80)) / logo.get_width(),
+        scale_value(250) / logo.get_height()
+    )
     logo_size = (
         int(logo.get_width() * logo_scale),
         int(logo.get_height() * logo_scale)
@@ -420,12 +449,15 @@ def show_intro():
             max(1, int(logo_size[1] * logo_factor))
         )
         current_logo = pygame.transform.smoothscale(logo, current_size)
-        screen.blit(current_logo, current_logo.get_rect(center=(WIDTH // 2, 300)))
+        screen.blit(
+            current_logo,
+            current_logo.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.43)))
+        )
 
         title = font_large.render("Made By", True, CYAN)
         creator = font_large.render("1oza16", True, WHITE)
-        screen.blit(title, title.get_rect(center=(WIDTH // 2, 490)))
-        screen.blit(creator, creator.get_rect(center=(WIDTH // 2, 565)))
+        screen.blit(title, title.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.70))))
+        screen.blit(creator, creator.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.81))))
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -503,16 +535,16 @@ def show_menu():
     difficulty_index = 1
     map_index = 0
     selected_option = 0
-    option_count = 3
+    option_count = 4
+    web_status = ""
     starfield = StarField()
     records = load_records()
-    logo_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "img",
-        "logo.png"
-    )
+    logo_path = os.path.join(IMAGE_DIR, "space invaders - logo.png")
     logo = pygame.image.load(logo_path).convert_alpha()
-    logo_scale = min(540 / logo.get_width(), 180 / logo.get_height())
+    logo_scale = min(
+        scale_value(540) / logo.get_width(),
+        scale_value(180) / logo.get_height()
+    )
     logo_size = (
         int(logo.get_width() * logo_scale),
         int(logo.get_height() * logo_scale)
@@ -548,17 +580,30 @@ def show_menu():
                         map_index = (map_index + direction) % len(map_options)
                 elif event.key == pygame.K_RETURN:
                     if selected_option == 2:
+                        try:
+                            if not webbrowser.open(
+                                "https://1oza16.github.io/games/index.html#space-invaders-view",
+                                new=2
+                            ):
+                                web_status = "No se pudo abrir el navegador."
+                            else:
+                                web_status = ""
+                        except (webbrowser.Error, OSError) as error:
+                            web_status = f"No se pudo abrir el enlace: {error}"
+                    elif selected_option == 3:
                         return None
-                    return difficulty_options[difficulty_index], map_options[map_index]
+                    else:
+                        return difficulty_options[difficulty_index], map_options[map_index]
 
         screen.fill(BLACK)
         starfield.update()
         starfield.draw(screen)
 
-        screen.blit(logo, logo.get_rect(center=(WIDTH // 2, 180)))
+        screen.blit(logo, logo.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.26))))
 
         difficulty_color = YELLOW if selected_option == 0 else WHITE
         map_color = YELLOW if selected_option == 1 else WHITE
+        web_color = YELLOW if selected_option == 2 else WHITE
         difficulty_text = font_menu.render(
             f"Dificultad: {difficulty_options[difficulty_index]}",
             True,
@@ -569,11 +614,16 @@ def show_menu():
             True,
             map_color
         )
-        exit_color = YELLOW if selected_option == 2 else WHITE
+        web_option = font_menu.render("Web", True, web_color)
+        exit_color = YELLOW if selected_option == 3 else WHITE
         exit_option = font_menu.render("Salir", True, exit_color)
-        screen.blit(difficulty_text, difficulty_text.get_rect(center=(WIDTH // 2, 320)))
-        screen.blit(map_text, map_text.get_rect(center=(WIDTH // 2, 380)))
-        screen.blit(exit_option, exit_option.get_rect(center=(WIDTH // 2, 440)))
+        screen.blit(difficulty_text, difficulty_text.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.44))))
+        screen.blit(map_text, map_text.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.505))))
+        screen.blit(web_option, web_option.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.57))))
+        screen.blit(exit_option, exit_option.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.635))))
+        if web_status:
+            status_text = font_powerup.render(web_status, True, RED)
+            screen.blit(status_text, status_text.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.69))))
 
         score_date = records["high_score_date"] or "--"
         wave_date = records["max_wave_date"] or "--"
@@ -587,8 +637,8 @@ def show_menu():
             True,
             WHITE
         )
-        screen.blit(score_record, score_record.get_rect(center=(WIDTH // 2, 515)))
-        screen.blit(wave_record, wave_record.get_rect(center=(WIDTH // 2, 555)))
+        screen.blit(score_record, score_record.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.77))))
+        screen.blit(wave_record, wave_record.get_rect(center=(WIDTH // 2, int(HEIGHT * 0.82))))
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -618,8 +668,8 @@ class GameManager:
         self.wave = 1
         
         self.alien_direction = 1
-        self.alien_step_x = 15
-        self.alien_step_y = 20
+        self.alien_step_x = scale_value(15)
+        self.alien_step_y = scale_value(20)
         self.move_timer = 0 
         self.ufo_timer = random.randint(800, 1500)
 
@@ -628,8 +678,9 @@ class GameManager:
 
     def create_bunkers(self):
         self.bunkers.empty()
-        for x_pos in MAP_LAYOUTS[self.map_name]:
-            y_pos = HEIGHT - 180
+        for x_ratio in MAP_LAYOUTS[self.map_name]:
+            x_pos = int(WIDTH * x_ratio)
+            y_pos = HEIGHT - scale_value(180)
             self.bunkers.add(Bunker(x_pos, y_pos))
 
     def create_aliens(self):
@@ -641,11 +692,14 @@ class GameManager:
             (ALIEN_RED, RED, 10),
             (ALIEN_RED, RED, 10)
         ]
+        alien_gap = scale_value(45)
+        formation_width = scale_value(36) + 10 * alien_gap
+        start_x = (WIDTH - formation_width) // 2
         for row_idx, data in enumerate(rows_data):
             pattern, color, pts = data
             for col in range(11):
-                x = 120 + col * 45
-                y = 120 + row_idx * 40
+                x = start_x + col * alien_gap
+                y = scale_value(120) + row_idx * scale_value(40)
                 self.aliens.add(Alien(x, y, pattern, color, pts))
 
     def start_wave(self):
@@ -694,10 +748,10 @@ class GameManager:
         if self.move_timer <= 0:
             move_down = False
             for alien in self.aliens.sprites():
-                if alien.rect.right >= WIDTH - 20 and self.alien_direction == 1:
+                if alien.rect.right >= WIDTH - scale_value(20) and self.alien_direction == 1:
                     move_down = True
                     break
-                elif alien.rect.left <= 20 and self.alien_direction == -1:
+                elif alien.rect.left <= scale_value(20) and self.alien_direction == -1:
                     move_down = True
                     break
 
@@ -803,32 +857,54 @@ class GameManager:
         wave_surf = font_ui.render("OLEADA", True, CYAN)
         wave_val = font_ui.render(f"{self.wave:02d}", True, WHITE)
         
-        screen.blit(score_surf, (40, 15))
-        screen.blit(score_val, (60, 45))
-        screen.blit(pause_text, pause_text.get_rect(center=(WIDTH // 2, 25)))
-        screen.blit(wave_surf, (WIDTH - 40 - wave_surf.get_width(), 15))
-        screen.blit(wave_val, (WIDTH - 40 - wave_val.get_width(), 45))
+        screen.blit(score_surf, (scale_value(40), scale_value(15)))
+        screen.blit(score_val, (scale_value(60), scale_value(45)))
+        screen.blit(pause_text, pause_text.get_rect(center=(WIDTH // 2, scale_value(25))))
+        screen.blit(wave_surf, (WIDTH - scale_value(40) - wave_surf.get_width(), scale_value(15)))
+        screen.blit(wave_val, (WIDTH - scale_value(40) - wave_val.get_width(), scale_value(45)))
 
         boss = self.boss_group.sprite
         if boss is not None:
             boss_label = font_powerup.render("JEFE", True, CYAN)
-            bar_width = 300
-            bar_rect = pygame.Rect(WIDTH // 2 - bar_width // 2, 84, bar_width, 14)
+            bar_width = scale_value(300)
+            bar_rect = pygame.Rect(
+                WIDTH // 2 - bar_width // 2,
+                scale_value(84),
+                bar_width,
+                scale_value(14)
+            )
             health_width = int(bar_width * boss.health / boss.max_health)
-            screen.blit(boss_label, boss_label.get_rect(center=(WIDTH // 2, 75)))
+            screen.blit(
+                boss_label,
+                boss_label.get_rect(center=(WIDTH // 2, scale_value(75)))
+            )
             pygame.draw.rect(screen, RED, bar_rect)
             pygame.draw.rect(screen, GREEN, (bar_rect.x, bar_rect.y, health_width, bar_rect.height))
-            pygame.draw.rect(screen, WHITE, bar_rect, 2)
+            pygame.draw.rect(screen, WHITE, bar_rect, scale_value(2))
 
-        pygame.draw.line(screen, RED, (0, HEIGHT - 30), (WIDTH, HEIGHT - 30), 3)
+        pygame.draw.line(
+            screen,
+            RED,
+            (0, HEIGHT - scale_value(30)),
+            (WIDTH, HEIGHT - scale_value(30)),
+            scale_value(3)
+        )
         
         lives_text = font_ui.render(str(self.player.lives), True, WHITE)
-        screen.blit(lives_text, (20, HEIGHT - 25))
+        screen.blit(lives_text, (scale_value(20), HEIGHT - scale_value(25)))
         
         for i in range(self.player.lives - 1):
-            x_pos = 60 + i * 50
-            pygame.draw.rect(screen, CYAN, (x_pos, HEIGHT - 15, 25, 10))
-            pygame.draw.rect(screen, CYAN, (x_pos + 10, HEIGHT - 20, 5, 5))
+            x_pos = scale_value(60) + i * scale_value(50)
+            pygame.draw.rect(
+                screen,
+                CYAN,
+                (x_pos, HEIGHT - scale_value(15), scale_value(25), scale_value(10))
+            )
+            pygame.draw.rect(
+                screen,
+                CYAN,
+                (x_pos + scale_value(10), HEIGHT - scale_value(20), scale_value(5), scale_value(5))
+            )
 
     def run(self):
         clock = pygame.time.Clock()
@@ -929,8 +1005,18 @@ class GameManager:
             else:
                 game_over_surf = font_large.render("GAME OVER", True, RED)
                 restart_surf = font_ui.render("Pulsa 'R' para reiniciar", True, WHITE)
-                screen.blit(game_over_surf, (WIDTH // 2 - 150, HEIGHT // 2 - 50))
-                screen.blit(restart_surf, (WIDTH // 2 - 170, HEIGHT // 2 + 20))
+                screen.blit(
+                    game_over_surf,
+                    game_over_surf.get_rect(
+                        center=(WIDTH // 2, HEIGHT // 2 - scale_value(50))
+                    )
+                )
+                screen.blit(
+                    restart_surf,
+                    restart_surf.get_rect(
+                        center=(WIDTH // 2, HEIGHT // 2 + scale_value(20))
+                    )
+                )
 
             self.draw_ui(screen)
             if paused:

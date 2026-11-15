@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>ConwaysGameOfLife</RootNamespace>
+		<!-- Nombre y version -->
+		<AssemblyName>ConwaysGameOfLife-1.0.0-Windows-x64</AssemblyName>
+		<Version>1.0.0</Version>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+		<ApplicationIcon>conways game of life - favicon.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NAudio" Version="2.2.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="..\..\docs\sound\Conways Game Of Life\*.mp3">
+			<LogicalName>ConwaysGameOfLife.Music.%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="conways game of life - favicon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+</Project>

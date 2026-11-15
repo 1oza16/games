@@ -1,7 +1,11 @@
-# Quitar una vez pulido
-games/Life of Conway
+# Conways Game Of Life
+.vs
+bin
+obj
+PublishProfiles
+ConwaysGameOfLife.csproj.user
 
-
+# Space Invaders
 __pycache__
 .venv
 build

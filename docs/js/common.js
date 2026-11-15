@@ -5,10 +5,10 @@
     const playlists = {
         'conway-view': {
             tracks: [
-                'sound/Life of Conway/Life of Conway - Falling Through the Hourglass.mp3',
-                'sound/Life of Conway/Life of Conway - Into Midnight.mp3',
-                'sound/Life of Conway/Life of Conway - Refreshing.mp3',
-                'sound/Life of Conway/Life of Conway - Sky Sailing.mp3'
+                'sound/Conways Game Of Life/Conways Game Of Life - Falling Through the Hourglass.mp3',
+                'sound/Conways Game Of Life/Conways Game Of Life - Into Midnight.mp3',
+                'sound/Conways Game Of Life/Conways Game Of Life - Refreshing.mp3',
+                'sound/Conways Game Of Life/Conways Game Of Life - Sky Sailing.mp3'
             ],
             remaining: [],
             lastTrack: null
