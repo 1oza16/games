@@ -150,6 +150,24 @@
     const invadersView = document.getElementById('space-invaders-view');
     const favicon = document.getElementById('site-favicon');
     const defaultFavicon = favicon.getAttribute('href');
+    const siteIntro = document.getElementById('site-intro');
+    let introTimeout;
+
+    function hideIntro() {
+        window.clearTimeout(introTimeout);
+        siteIntro.hidden = true;
+        siteIntro.classList.remove('is-playing');
+        document.documentElement.classList.remove('site-intro-open');
+    }
+
+    function playIntro() {
+        hideIntro();
+        document.documentElement.classList.add('site-intro-open');
+        siteIntro.hidden = false;
+        void siteIntro.offsetWidth;
+        siteIntro.classList.add('is-playing');
+        introTimeout = window.setTimeout(hideIntro, 4000);
+    }
 
     function activateView(viewId, updateHash) {
         views.forEach(view => {
@@ -183,6 +201,12 @@
     const initialHashTarget = document.getElementById(location.hash.slice(1));
     const initialView = initialHashTarget && initialHashTarget.closest('.game-view');
     activateView(initialView ? initialView.id : conwayView.id, false);
+
+    const introStorageKey = 'games-page-intro-seen';
+    if (sessionStorage.getItem(introStorageKey) !== 'true') {
+        sessionStorage.setItem(introStorageKey, 'true');
+        playIntro();
+    }
 
     window.addEventListener('hashchange', () => {
         const hashTarget = document.getElementById(location.hash.slice(1));
